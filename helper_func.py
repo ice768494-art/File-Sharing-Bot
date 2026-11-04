@@ -17,11 +17,15 @@ async def is_subscribed(filter, client, update):
     user_id = update.from_user.id
     if user_id in ADMINS:
         return True
+    # A received join request is sufficient in this requested mode. Check it
+    # BEFORE get_chat_member(), which can fail for users awaiting approval.
+    if await has_force_sub_request(user_id, FORCE_SUB_CHANNEL):
+        return True
+
     try:
         member = await client.get_chat_member(chat_id=FORCE_SUB_CHANNEL, user_id=user_id)
     except UserNotParticipant:
-        # Request mode: submitting a join request is enough; admin approval is not required.
-        return await has_force_sub_request(user_id, FORCE_SUB_CHANNEL)
+        return False
     except Exception:
         return False
 
