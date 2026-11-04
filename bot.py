@@ -51,12 +51,12 @@ class Bot(Client):
         except Exception as e:
             self.LOGGER(__name__).warning(e)
             self.LOGGER(__name__).warning(f"Make Sure Bot Is Admin In DB Channel, And Double Check The CHANNEL_ID Value, Current Value: {CHANNEL_ID}")
-            self.LOGGER(__name__).info("\nBot Stopped. Join https://t.me/MadflixBots_Support For Support")
+            self.LOGGER(__name__).info("\nBot Stopped. Join https://t.me/AnimeNetworkTamil")
             sys.exit()
 
         self.set_parse_mode(ParseMode.HTML)
-        self.LOGGER(__name__).info(f"Bot Running...!\n\nCreated By \nhttps://t.me/Madflix_Bots")
-        self.LOGGER(__name__).info(f"""ミ💖 MADFLIX BOTZ 💖彡""")
+        self.LOGGER(__name__).info(f"Bot Running...!\n\nCreated By \nhttps://t.me/AnimeNetworkTamil")
+        self.LOGGER(__name__).info(f"""ミSxT ⚡彡""")
         self.username = usr_bot_me.username
         #web-response
         app = web.AppRunner(await web_server())
@@ -73,8 +73,5 @@ class Bot(Client):
 
 
 
-# Jishu Developer 
-# Don't Remove Credit 🥺
-# Telegram Channel @Madflix_Bots
-# Backup Channel @JishuBotz
-# Developer @JishuDeveloper
+
+
