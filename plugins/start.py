@@ -140,12 +140,12 @@ async def not_joined(client: Client, message: Message):
     ]
     if payload:
         buttons.append([InlineKeyboardButton(
-            text="✅ I've Joined / Check Again",
+            text="🔄 Try Again",
             url=f"https://t.me/{client.username}?start={payload}",
         )])
     else:
         buttons.append([InlineKeyboardButton(
-            text="✅ I've Joined / Check Again",
+            text="🔄 Try Again",
             callback_data="check_sub",
         )])
 
