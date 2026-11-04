@@ -4,6 +4,7 @@ import asyncio
 from pyrogram import filters
 from pyrogram.enums import ChatMemberStatus
 from config import FORCE_SUB_CHANNEL, ADMINS
+from database.database import has_force_sub_request
 from pyrogram.errors.exceptions.bad_request_400 import UserNotParticipant
 from pyrogram.errors import FloodWait
 
@@ -19,16 +20,20 @@ async def is_subscribed(filter, client, update):
     try:
         member = await client.get_chat_member(chat_id=FORCE_SUB_CHANNEL, user_id=user_id)
     except UserNotParticipant:
-        # A pending join request is not membership. The user must wait for approval.
-        return False
+        # Request mode: submitting a join request is enough; admin approval is not required.
+        return await has_force_sub_request(user_id, FORCE_SUB_CHANNEL)
     except Exception:
         return False
 
-    return member.status in (
+    if member.status in (
         ChatMemberStatus.OWNER,
         ChatMemberStatus.ADMINISTRATOR,
         ChatMemberStatus.MEMBER,
-    )
+    ):
+        return True
+
+    # Also allow users whose join request was received, even while it is pending.
+    return await has_force_sub_request(user_id, FORCE_SUB_CHANNEL)
 
 
 async def encode(string):
