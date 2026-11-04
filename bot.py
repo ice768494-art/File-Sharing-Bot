@@ -31,16 +31,22 @@ class Bot(Client):
 
         if FORCE_SUB_CHANNEL:
             try:
-                link = (await self.get_chat(FORCE_SUB_CHANNEL)).invite_link
-                if not link:
-                    await self.export_chat_invite_link(FORCE_SUB_CHANNEL)
-                    link = (await self.get_chat(FORCE_SUB_CHANNEL)).invite_link
-                self.invitelink = link
+                # Always create a dedicated invite link that requires admin approval.
+                # The bot must be an administrator with invite-user permission.
+                invite = await self.create_chat_invite_link(
+                    chat_id=FORCE_SUB_CHANNEL,
+                    name="File Sharing Bot - Join Request",
+                    creates_join_request=True,
+                )
+                self.invitelink = invite.invite_link
+                self.LOGGER(__name__).info("Force-sub join-request mode is enabled.")
             except Exception as a:
                 self.LOGGER(__name__).warning(a)
-                self.LOGGER(__name__).warning("Bot Can't Export Invite link From Force Sub Channel!")
-                self.LOGGER(__name__).warning(f"Please Double Check The FORCE_SUB_CHANNEL Value And Make Sure Bot Is Admin In Channel With Invite Users Via Link Permission, Current Force Sub Channel Value: {FORCE_SUB_CHANNEL}")
-                self.LOGGER(__name__).info("\nBot Stopped. https://t.me/MadflixBots_Support For Support")
+                self.LOGGER(__name__).warning(
+                    "Could not create a join-request invite link. Make sure FORCE_SUB_CHANNEL is correct "
+                    "and the bot is an administrator with permission to invite users via links."
+                )
+                self.LOGGER(__name__).info("\nBot Stopped. Check the Force Subscribe channel permissions.")
                 sys.exit()
 
         try:
