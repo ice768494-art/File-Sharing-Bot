@@ -6,7 +6,9 @@ from pyrogram.errors import FloodWait, UserIsBlocked, InputUserDeactivated
 from bot import Bot
 from config import ADMINS, FORCE_MSG, START_MSG, CUSTOM_CAPTION, DISABLE_CHANNEL_BUTTON, PROTECT_CONTENT, FILE_AUTO_DELETE
 from helper_func import subscribed, encode, decode, get_messages
-from db_storage.database import add_user, del_user, full_userbase, present_user
+from db_storage.database import (
+    add_user, del_user, full_userbase, present_user, save_pending_file_payload
+)
 
 ant = FILE_AUTO_DELETE
 Sxt = ant
@@ -135,6 +137,10 @@ async def start_command(client: Client, message: Message):
 async def not_joined(client: Client, message: Message):
     # Keep deep-link payloads intact so file links still work after approval.
     payload = message.command[1] if len(message.command) > 1 else None
+    if payload:
+        # Keep the original file link so the join-request notification's
+        # Try Again button can resume the exact file request.
+        await save_pending_file_payload(message.from_user.id, payload)
     buttons = [
         [InlineKeyboardButton(text="📝 Request to Join", url=client.invitelink)],
     ]

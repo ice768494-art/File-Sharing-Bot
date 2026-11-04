@@ -6,7 +6,9 @@ from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 from bot import Bot
 from config import FORCE_SUB_CHANNEL
-from db_storage.database import has_force_sub_request
+from db_storage.database import (
+    save_force_sub_request, has_force_sub_request, get_pending_file_payload
+)
 
 LOGGER = logging.getLogger(__name__)
 
@@ -21,9 +23,9 @@ if FORCE_SUB_CHANNEL:
             await client.send_message(
                 chat_id=user_id,
                 text=(
-                    
-                    
-                    " tap <b>Try Again</b> on your original file link."
+                    "✅ <b>Your join request has been received!</b>\n\n"
+                    "You do not need to wait for admin approval. Return to the bot "
+                    "and tap <b>Try Again</b> on your original file link."
                 ),
                 reply_markup=InlineKeyboardMarkup(
                     [[InlineKeyboardButton("🔄 Try Again", callback_data="check_sub")]]
@@ -41,31 +43,41 @@ async def check_force_sub_callback(client, callback_query):
         return
 
     try:
-        member = await client.get_chat_member(FORCE_SUB_CHANNEL, user_id)
-        is_member = member.status in (
-            ChatMemberStatus.OWNER,
-            ChatMemberStatus.ADMINISTRATOR,
-            ChatMemberStatus.MEMBER,
-        )
         has_requested = await has_force_sub_request(user_id, FORCE_SUB_CHANNEL)
+        if not has_requested:
+            try:
+                member = await client.get_chat_member(FORCE_SUB_CHANNEL, user_id)
+                has_requested = member.status in (
+                    ChatMemberStatus.OWNER, ChatMemberStatus.ADMINISTRATOR,
+                    ChatMemberStatus.MEMBER,
+                )
+            except Exception:
+                has_requested = False
 
-        if is_member or has_requested:
-            await callback_query.answer(
-                "✅ Request verified! Reopen your original file link to receive files.",
-                show_alert=True,
-            )
-        else:
+        if not has_requested:
             await callback_query.answer(
                 "❌ I haven't received your join request yet. Tap Request to Join first.",
                 show_alert=True,
             )
-    except Exception as exc:
-        LOGGER.warning("Force-sub check failed for %s: %s", user_id, exc)
-        # A user may not be a channel member while their request is pending.
-        if await has_force_sub_request(user_id, FORCE_SUB_CHANNEL):
+            return
+
+        payload = await get_pending_file_payload(user_id)
+        if payload:
+            # Telegram callback buttons cannot execute /start themselves.
+            # Replace this button with a deep link to the saved original file.
+            url = f"https://t.me/{client.username}?start={payload}"
+            await callback_query.message.edit_reply_markup(
+                reply_markup=InlineKeyboardMarkup(
+                    [[InlineKeyboardButton("📥 Continue to Your Files", url=url)]]
+                )
+            )
             await callback_query.answer(
-                "✅ Request verified! Reopen your original file link to receive files.",
-                show_alert=True,
+                "✅ Request verified! Tap Continue to Your Files.", show_alert=True
             )
         else:
-            await callback_query.answer("Could not verify your request. Try again.", show_alert=True)
+            await callback_query.answer(
+                "✅ Request verified! Reopen your original file link.", show_alert=True
+            )
+    except Exception as exc:
+        LOGGER.exception("Force-sub check failed for %s: %s", user_id, exc)
+        await callback_query.answer("Could not verify your request. Try again.", show_alert=True)
