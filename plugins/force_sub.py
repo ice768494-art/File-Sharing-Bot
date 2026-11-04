@@ -6,7 +6,7 @@ from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 from bot import Bot
 from config import FORCE_SUB_CHANNEL
-from database.database import save_force_sub_request, has_force_sub_request
+from db_storage.database import has_force_sub_request
 
 LOGGER = logging.getLogger(__name__)
 
@@ -21,9 +21,9 @@ if FORCE_SUB_CHANNEL:
             await client.send_message(
                 chat_id=user_id,
                 text=(
-                    "✅ <b>Your join request has been received!</b>\n\n"
-                    "You do not need to wait for admin approval. Return to the bot "
-                    "and tap <b>Try Again</b> on your original file link."
+                    
+                    
+                    " tap <b>Try Again</b> on your original file link."
                 ),
                 reply_markup=InlineKeyboardMarkup(
                     [[InlineKeyboardButton("🔄 Try Again", callback_data="check_sub")]]
