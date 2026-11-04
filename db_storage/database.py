@@ -52,3 +52,18 @@ async def has_force_sub_request(user_id: int, channel_id: int) -> bool:
     return force_sub_requests.find_one(
         {"_id": int(user_id), "channel_id": int(channel_id), "requested": True}
     ) is not None
+
+
+async def save_pending_file_payload(user_id: int, payload: str):
+    """Remember the deep-link payload while the user completes Force Subscribe."""
+    force_sub_requests.update_one(
+        {"_id": int(user_id)},
+        {"$set": {"pending_payload": str(payload)}},
+        upsert=True,
+    )
+
+
+async def get_pending_file_payload(user_id: int):
+    """Return the user's most recent file deep-link payload, if present."""
+    doc = force_sub_requests.find_one({"_id": int(user_id)}, {"pending_payload": 1})
+    return doc.get("pending_payload") if doc else None
